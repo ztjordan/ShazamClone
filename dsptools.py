@@ -53,6 +53,7 @@ def defineNoteFrequencies(startFreq, stopFreq, startNote):
 	return (np.array(noteFrequencies), noteNames)
 
 def computeNoiseEstimate(mat, nbands, nguards):
+	# Suggested improvement: compute variance as well
 	noise_estimate = np.zeros(mat.shape)
 
 	norm_filter = np.concatenate( (np.array([1/(2*nbands)]*nbands), np.array([0]*(2*nguards+1)), np.array([1/(2*nbands)]*nbands)) )
@@ -63,46 +64,26 @@ def computeNoiseEstimate(mat, nbands, nguards):
 	return noise_estimate
 
 def denoiser(estimate, noise_estimate, threshold=0.1):
+	# Suggested improvement: use variance for thresholding
 	denoised = np.zeros(estimate.shape)
 	for timeslice in range(estimate.shape[-1]):
 		for scale_index in range(estimate.shape[0]):
 			if threshold*estimate[scale_index,timeslice] > noise_estimate[scale_index,timeslice]:
-				denoised[scale_index,timeslice] = estimate[scale_index,timeslice] / noise_estimate[scale_index,timeslice]
+				denoised[scale_index,timeslice] = estimate[scale_index,timeslice] - noise_estimate[scale_index,timeslice]
 	return denoised
 
 def findPeaks(arr):
-	peaks = np.zeros(len(arr),dtype=bool)
+	peaks = np.zeros(len(arr))
 	for i in range(1, (len(arr)-1)):
 		if (arr[i] > arr[i-1]) and (arr[i] > arr[i+1]):
-			peaks[i] = True
+			peaks[i] = arr[i]
 	return peaks
 
 def findPeaksInScale(cwtM):
-	peaks = np.zeros(cwtM.shape, dtype=bool)
+	peaks = np.zeros(cwtM.shape)
 	for timeslice in range(cwtM.shape[-1]):
 		peaks[:,timeslice] = findPeaks(cwtM[:,timeslice])
 	return peaks
-
-def orderPeaks(t, f, peaks):
-	peakLocations = []
-	flat = peaks.flatten('F') # Fortran style flattening, because column-major
-	for ind in range(0,len(flat)):
-		if flat[ind]:
-			peakLocations.append(np.unravel_index(ind, peaks.shape, order='F'))
-	return peakLocations
-
-def generateAddresses(peakLocations, targetGroupSize=5, anchorLag=20):
-	addressTable = {}
-	for anchorInd in range(0, len(peakLocations)-targetGroupSize-anchorLag):
-		(fAnchor, tAnchor) = peakLocations[anchorInd]
-		groupInfo = []
-		for groupMemberInd in range(anchorInd+anchorLag,anchorInd+targetGroupSize+anchorLag):
-			(fMember, tMember) = peakLocations[groupMemberInd]
-			tDelta = tMember - tAnchor
-			groupInfo.append((fAnchor, fMember, tDelta))
-		addressTable[tuple(groupInfo)] = tAnchor
-
-	return addressTable
 
 def cwtAnalysis(timeSeries, fs, noteFrequencies):
 	(cwtF, cwtT, cwtM) = computeCWT(timeSeries, fs, noteFrequencies)

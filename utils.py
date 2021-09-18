@@ -34,6 +34,7 @@ def writeToCsv(songTable, songName, fingerPrintArchive):
 
 			csvWriter.writerow(csvEntry)
 
+'''
 def orderPeaks(t, f, peaks):
 	peakLocations = []
 	flat = peaks.flatten('F') # Fortran style flattening, because column-major
@@ -41,6 +42,7 @@ def orderPeaks(t, f, peaks):
 		if flat[ind]:
 			peakLocations.append(np.unravel_index(ind, peaks.shape, order='F'))
 	return peakLocations
+'''
 
 '''
 def generateAddresses(peakLocations, targetGroupSize=5, anchorLag=20):
@@ -57,7 +59,7 @@ def generateAddresses(peakLocations, targetGroupSize=5, anchorLag=20):
 	return addressTable
 '''
 
-
+'''
 def generateAddresses(peakLocations, numAnchorsPerGroup=1, targetGroupSize=5, anchorLag=20):
 	addressTable = []
 	for anchorInd in range(0, len(peakLocations)-targetGroupSize-anchorLag): # iterate over all anchorPeaks
@@ -77,6 +79,7 @@ def generateAddresses(peakLocations, numAnchorsPerGroup=1, targetGroupSize=5, an
 
 		addressTable.append(groupInfo)
 	return addressTable
+'''
 
 '''
 def matchKeys(dbKey, testKey, matchThreshold=3):
