@@ -5,8 +5,8 @@ def createDatabase(dbName):
 
 	cur = con.cursor()
 
-	cur.execute("CREATE TABLE IF NOT EXISTS songs (songID integer PRIMARY KEY, songName text)")
-	cur.execute("CREATE TABLE IF NOT EXISTS points (pointID integer PRIMARY KEY, time integer, frequency integer, amplitude integer, songID REFERENCES songs(songID))")
+	cur.execute("CREATE TABLE IF NOT EXISTS songs (songID integer PRIMARY KEY, songName text, UNIQUE(songName))")
+	cur.execute("CREATE TABLE IF NOT EXISTS points (pointID integer PRIMARY KEY, pTime integer, frequency integer, amplitude integer, songID REFERENCES songs(songID), UNIQUE(pTime, amplitude, songID))")
 	cur.execute("CREATE TABLE IF NOT EXISTS constellations (constellationID integer PRIMARY KEY, songID REFERENCES songs(songID))")
 	cur.execute("CREATE TABLE IF NOT EXISTS constellationGroups (relationshipID integer PRIMARY KEY, constellationID REFERENCES constellations(constellationID), dTime integer, dFrequency integer)")
 	cur.execute("CREATE TABLE IF NOT EXISTS constellationAnchors (anchorID integer PRIMARY KEY, constellationID REFERENCES constellations(constellationID), anchorTime REFERENCES points(pointID), anchorFrequency REFERENCES points(pointFrequency)")
