@@ -8,6 +8,7 @@ from scipy.io.wavfile import read as read_wav
 import dsptools
 import plottools
 import utils
+import dbtools
 
 import pdb
 
@@ -33,22 +34,19 @@ def checkForCSV(songName, archiveDir):
 
 def main(args):
 	fingerprintMethod = 'STFT'
-	makePlots = True
+	makePlots = False
 	songLibraryInfo = listSongs(args.library)
 
-
-	numAnchorsPerGroup = 1
-	targetGroupSize = 5
-	#utils.createDatabase(args.archive, targetGroupSize, numAnchorsPerGroup)
+	dbtools.createDatabase(args.archive)
 
 	for (songFile, songName) in songLibraryInfo:
-
-		#utils.addSongToDB(args.archive, songName)
-
-		#if checkForCSV(songName, args.archive):
-		#	continue
-
 		print('Processing {}'.format(songFile))
+
+		# check for song in DB
+		if dbtools.getSongID(args.archive, songName):
+			continue
+
+
 
 		fs, rawData = read_wav(songFile)
 		monoData = dsptools.convertToMono(rawData)
@@ -116,10 +114,19 @@ def main(args):
 											 block=False,
 											 dest=os.path.join(args.images, songName + 'NoiseEstimatorExample.png'))
 
-			#fullSongPeakLocations = utils.orderPeaks(stftT, stftF, peakMapStftM)
+			sortedPeaks = dsptools.orderPeaks(stftT, stftF, peakMapStftM)
 			#fullSongTable = utils.generateAddresses(fullSongPeakLocations, targetGroupSize=targetGroupSize, anchorLag=20)
-			#utils.writeToCsv(fullSongTable, songName, args.archive)
 			#utils.addFingerprintsToDB(args.archive, fullSongTable, songName)
+			dbtools.addSongToDB(args.archive, songName)
+			dbtools.addPeaksToDB(args.archive, sortedPeaks, songName)
+			timeOffset = 5
+			timeWindow = 2
+			frequencyWindow = 10
+			dbtools.generateFingerprints(args.archive, songName, timeOffset, timeWindow, frequencyWindow)
+
+	dtype = [('dTime', int), ('dFrequency', int)]
+	testConstellation = [(6, 7), (7, -10), (7, 8)]
+	dbtools.searchForConstellation(args.archive, testConstellation)
 
 
 if __name__ == "__main__":

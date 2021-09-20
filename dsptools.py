@@ -72,6 +72,20 @@ def denoiser(estimate, noise_estimate, threshold=0.1):
 				denoised[scale_index,timeslice] = estimate[scale_index,timeslice] - noise_estimate[scale_index,timeslice]
 	return denoised
 
+def orderPeaks(t, f, peaks):
+	peakVals = []
+	flat = peaks.flatten('F') # Fortran style flattening, because column-major
+	dtype = [('time', int), ('frequency', int), ('amplitude', float)]
+	for ind in range(0,len(flat)):
+		if flat[ind]:
+			(freq, time) = np.unravel_index(ind, peaks.shape, order='F')
+			amp = peaks[freq][time]
+			peakVals.append((time, freq, amp))
+
+	tmp = np.array(peakVals, dtype=dtype)
+	sortedPeaks = np.sort(tmp, order='amplitude') 
+	return sortedPeaks
+
 def findPeaks(arr):
 	peaks = np.zeros(len(arr))
 	for i in range(1, (len(arr)-1)):
