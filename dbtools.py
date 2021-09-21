@@ -146,12 +146,21 @@ def searchForConstellation(dbName, constellationPoints):
 
 	# at this point, temp.search will contain A LOT of entries that consist of every databse constellation that contains any point that matches any point in the constellation we are searching for
 	# SELECT constellationID, COUNT(constellationID) FROM temp.search GROUP BY constellationID ORDER BY COUNT(constellationID) DESC; # get a list of constellation IDs and the count of points they have that match
-	cur.execute("SELECT constellationID, songID FROM temp.search HAVING COUNT(constellationID)=(?)", (nPoints))
+	cur.execute("SELECT constellationID, songID FROM temp.search HAVING COUNT(constellationID)=(?)", (nPoints)) # need to use leq (less than or equal to) here - assumming snippets have more points than database
 
 	cur.execute("DROP TABLE temp.search")
 
 	con.close()
 
+def songMatch(dbName, constellations):
+	#constellations = [((anchorTime, anchorFreq), [(dTime, dFreq), (dTime, dFreq), (dTime, dFreq)]), ((aT, aF), [(dT, dF), (dT, dF), (dT, dF))]
+	breakpoint()
+	# we will have a list of constellations from the snippet
+	# find the first peak and build the constellation hash around it
+	# find the next peak outside of the constellation window and build the constellation hash around it
+	# compute the time and frequency differences between the two peaks, and only keep songs with constellation matches that are those distances apart
+	# those songs are matches - use a temporary table to keep a count of the matches
+	return
 
 
 	

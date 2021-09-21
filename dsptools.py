@@ -1,10 +1,10 @@
 from scipy import signal
-from scipy.io.wavfile import read as read_wav
 
 import math
 import subprocess
 
 import numpy as np
+import pandas as pd
 
 
 def convertToWav(infile, outfile):
@@ -72,6 +72,27 @@ def denoiser(estimate, noise_estimate, threshold=0.1):
 				denoised[scale_index,timeslice] = estimate[scale_index,timeslice] - noise_estimate[scale_index,timeslice]
 	return denoised
 
+def generateConstellations(orderedPeaks, peakMap, timeOffset, timeWindow, frequencyWindow):
+	# Need to keep track of peakTime and peakFrequency in return structure
+	constellations = []
+	(nFreq, nTime) = peakMap.shape
+	for peak in orderedPeaks:
+		constellationPoints = []
+		peakFreq = peak['frequency']
+		peakTime = peak['time']
+		freqStart = max(peakFreq - frequencyWindow, 0)
+		freqEnd = min(peakFreq + frequencyWindow, nFreq)
+		timeStart = min(peakTime + (timeOffset - timeWindow), nTime)
+		timeEnd = min(peakTime + (timeOffset + timeWindow), nTime)
+
+		(peakFreqOffsets, peakTimeOffsets) = np.nonzero(peakMap[freqStart:freqEnd+1, timeStart:timeEnd+1])
+		for (peakFreqOffset, peakTimeOffset) in zip(peakFreqOffsets, peakTimeOffsets):
+			dFreq = (freqStart + peakFreqOffset) - peakFreq
+			dTime = (timeStart + peakTimeOffset) - peakTime
+			constellationPoints.append((dTime, dFreq))
+		constellations.append(((peakTime, peakFreq), constellationPoints))
+	return constellations
+
 def orderPeaks(t, f, peaks):
 	peakVals = []
 	flat = peaks.flatten('F') # Fortran style flattening, because column-major
@@ -83,7 +104,7 @@ def orderPeaks(t, f, peaks):
 			peakVals.append((time, freq, amp))
 
 	tmp = np.array(peakVals, dtype=dtype)
-	sortedPeaks = np.sort(tmp, order='amplitude') 
+	sortedPeaks = np.sort(tmp, order='amplitude')[::-1]
 	return sortedPeaks
 
 def findPeaks(arr):

@@ -7,7 +7,6 @@ from scipy.io.wavfile import read as read_wav
 
 import dsptools
 import plottools
-import utils
 import dbtools
 
 import pdb
@@ -115,18 +114,12 @@ def main(args):
 											 dest=os.path.join(args.images, songName + 'NoiseEstimatorExample.png'))
 
 			sortedPeaks = dsptools.orderPeaks(stftT, stftF, peakMapStftM)
-			#fullSongTable = utils.generateAddresses(fullSongPeakLocations, targetGroupSize=targetGroupSize, anchorLag=20)
-			#utils.addFingerprintsToDB(args.archive, fullSongTable, songName)
 			dbtools.addSongToDB(args.archive, songName)
 			dbtools.addPeaksToDB(args.archive, sortedPeaks, songName)
 			timeOffset = 5
 			timeWindow = 2
 			frequencyWindow = 10
 			dbtools.generateFingerprints(args.archive, songName, timeOffset, timeWindow, frequencyWindow)
-
-	dtype = [('dTime', int), ('dFrequency', int)]
-	testConstellation = [(6, 7), (7, -10), (7, 8)]
-	dbtools.searchForConstellation(args.archive, testConstellation)
 
 
 if __name__ == "__main__":
